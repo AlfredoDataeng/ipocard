@@ -1,0 +1,61 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Student {
+  id            String      @id @default(uuid())
+  name          String
+  studentNumber String      @unique
+  classGroup    String      // Turma
+  photoUrl      String?     // Student image
+  password      String      // Encrypted password
+  balance       Float       @default(0.0)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  deposits      Deposit[]
+  purchases     Purchase[]
+}
+
+model Deposit {
+  id            String        @id @default(uuid())
+  studentId     String
+  student       Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  amount        Float
+  receiptRef    String        // Bank receipt reference number
+  receiptDate   DateTime
+  status        DepositStatus @default(PENDING) // PENDING, APPROVED, REJECTED
+  approvedBy    String?       // Secretariat admin identifier
+  validatedAt   DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+enum DepositStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Purchase {
+  id          String   @id @default(uuid())
+  studentId   String
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  totalAmount Float
+  items       Json     // Array of {productId, name, price, quantity}
+  createdAt   DateTime @default(now())
+}
+
+model Product {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  price     Float
+  imageUrl  String?
+  category  String   @default("Cantina")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
