@@ -3,7 +3,13 @@
 @tailwind utilities;
 
 html {
-  font-size: 120%; /* Scaled up by 20% for high legibility */
+  font-size: 100%; /* Default for mobile for high legibility and proper fit */
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 120%; /* Scaled up by 20% on desktop/tablets */
+  }
 }
 
 @layer utilities {

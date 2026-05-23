@@ -201,6 +201,7 @@ function App() {
             maxSeq = seq;
           }
         });
+        const nextSeq = maxSeq + 1;
         const currentYear = new Date().getFullYear();
         const studentNumber = `IC-IPOCET-${currentYear}-${String(nextSeq).padStart(3, '0')}`;
 
@@ -503,8 +504,15 @@ function App() {
 
       {/* HEADER NAVBAR */}
       <header className="relative z-10 w-full max-w-6xl mx-auto flex flex-row justify-between items-center border border-white/5 bg-slate-950/80 backdrop-blur-xl p-5 rounded-3xl mb-8 shadow-sm">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
           <span className="font-black tracking-tight text-white text-2xl">IPOCARD</span>
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border transition-all ${
+            usingApi 
+              ? 'bg-teal-500/10 text-teal-400 border-teal-500/20' 
+              : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+          }`}>
+            {usingApi ? 'API Online' : 'Modo Contingência'}
+          </span>
         </div>
 
         {/* Navigation Mode */}
@@ -563,7 +571,7 @@ function App() {
           {/* Lançar Depósito Físico */}
           <section className="bg-slate-950/90 border border-white/5 p-8 rounded-3xl flex flex-col justify-between">
             <div>
-              <h2 className="text-lg font-bold text-white uppercase tracking-wider mb-6">Lançar Depósito Físico</h2>
+              <h2 className="text-lg font-bold text-white uppercase tracking-wider mb-6">Lançar Depósito </h2>
               
               <form onSubmit={handleRegisterPhysicalDeposit} className="space-y-6">
                 <div className="relative">

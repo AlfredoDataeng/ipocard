@@ -1,82 +1,72 @@
 import React, { useState } from 'react';
-import { 
-  StyleSheet, 
-  Text, 
-  View, 
-  TextInput, 
-  TouchableOpacity, 
-  KeyboardAvoidingView, 
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+  KeyboardAvoidingView,
   Platform,
-  Image,
-  Alert 
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
+import { loginStudent, loginStaff, saveToken } from '../services/api';
 
 export default function LoginScreen({ navigation }: { navigation: any }) {
   const [role, setRole] = useState<'ALUNO' | 'CANTINA'>('ALUNO');
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!identifier || !password) {
       Alert.alert('Erro', 'Por favor, preencha todos os campos.');
       return;
     }
 
-    if (role === 'ALUNO') {
-      // Simulate/Trigger API request or mock authentication
-      if (identifier.toUpperCase().includes('IC-IPOCET') || identifier === '001' || identifier === '1') {
-        navigation.replace('StudentDashboard', { 
-          studentId: 'ae-student-1',
-          name: 'ALEXANDRA SANEMA',
-          studentNumber: 'IC-IPOCET-2026-001',
-          classGroup: '12ª Classe - Informática',
-          balance: 15000
-        });
+    setLoading(true);
+    try {
+      if (role === 'ALUNO') {
+        const res = await loginStudent(identifier.trim(), password);
+        await saveToken(res.token);
+        navigation.replace('StudentDashboard', { studentId: res.student.id });
       } else {
-        // Fallback for claudio
-        navigation.replace('StudentDashboard', { 
-          studentId: 'ae-student-2',
-          name: 'CLÁUDIO SILVA',
-          studentNumber: 'IC-IPOCET-2026-002',
-          classGroup: '11ª Classe - Construção Civil',
-          balance: 500
-        });
-      }
-    } else {
-      if (identifier === 'cantina' && password === 'cant123') {
+        const res = await loginStaff(identifier.trim(), password);
+        await saveToken(res.token);
         navigation.replace('CantinaScanner');
-      } else {
-        Alert.alert('Erro', 'Credenciais de operador inválidas.');
       }
+    } catch (err: any) {
+      Alert.alert('Erro de Autenticação', err.message || 'Não foi possível ligar ao servidor.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      <View className="absolute inset-0 bg-[#000c3b]"></View>
       <View style={styles.content}>
-        
+
         {/* Logo and Slogan */}
         <View style={styles.logoContainer}>
           <View style={styles.logoIcon}>
             <Text style={styles.logoText}>IP</Text>
           </View>
           <Text style={styles.appName}>IPOCARD</Text>
-          <Text style={styles.slogan}>“O futuro dos pagamentos estudantis no IPOCET.”</Text>
+          <Text style={styles.slogan}>"O futuro dos pagamentos estudantis no IPOCET."</Text>
         </View>
 
         {/* Role Selector */}
         <View style={styles.tabContainer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.tabButton, role === 'ALUNO' && styles.tabButtonActive]}
             onPress={() => setRole('ALUNO')}
           >
             <Text style={[styles.tabText, role === 'ALUNO' && styles.tabTextActive]}>Estudante</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.tabButton, role === 'CANTINA' && styles.tabButtonActive]}
             onPress={() => setRole('CANTINA')}
           >
@@ -84,40 +74,50 @@ export default function LoginScreen({ navigation }: { navigation: any }) {
           </TouchableOpacity>
         </View>
 
-        {/* Card Form Wrapper */}
+        {/* Form */}
         <View style={styles.formCard}>
           <View style={styles.inputGroup}>
             <Text style={styles.label}>
-              {role === 'ALUNO' ? 'Número do Estudante / ID' : 'Utilizador'}
+              {role === 'ALUNO' ? 'Número do Estudante' : 'Utilizador'}
             </Text>
-            <TextInput 
+            <TextInput
               style={styles.input}
-              placeholder={role === 'ALUNO' ? 'Ex: IC-IPOCET-2026-001' : 'Ex: cantina'}
+              placeholder={role === 'ALUNO' ? 'Ex: IC-IPOCET-2026-001' : 'cantina'}
               placeholderTextColor="#94a3b8"
               value={identifier}
               onChangeText={setIdentifier}
               autoCapitalize={role === 'ALUNO' ? 'characters' : 'none'}
+              editable={!loading}
             />
           </View>
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Senha</Text>
-            <TextInput 
+            <TextInput
               style={styles.input}
               placeholder="••••••••"
               placeholderTextColor="#94a3b8"
               secureTextEntry
               value={password}
               onChangeText={setPassword}
+              editable={!loading}
             />
           </View>
 
-          <TouchableOpacity style={styles.button} onPress={handleLogin}>
-            <Text style={styles.buttonText}>Entrar no IPOCARD</Text>
+          <TouchableOpacity
+            style={[styles.button, loading && styles.buttonDisabled]}
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Entrar no IPOCARD</Text>
+            )}
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.footerText}>Associação Estudantil IPOCET</Text>
+        <Text style={styles.footerText}>Associação Estudantil IPOCET • {'\n'}Servidor: 192.168.1.8</Text>
       </View>
     </KeyboardAvoidingView>
   );
@@ -227,6 +227,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#06b6d4',
   },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
   buttonText: {
     color: '#fff',
     fontSize: 15,
@@ -239,5 +242,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 40,
     fontWeight: '600',
-  }
+    lineHeight: 18,
+  },
 });
