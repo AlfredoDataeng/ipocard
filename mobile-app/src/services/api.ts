@@ -6,14 +6,22 @@ import Constants from 'expo-constants';
 // Em dev, o Expo já sabe o IP da máquina na rede Wi-Fi.
 // Fallback para localhost se não conseguir detetar.
 // ─────────────────────────────────────────────────────────────
+import { Platform } from 'react-native';
+
 function getApiBaseUrl(): string {
+  // Se estiver a correr na Web (browser), liga ao localhost
+  if (Platform.OS === 'web') {
+    return 'http://127.0.0.1:3000';
+  }
+
   // Try to get the debugger host from Expo (works in Expo Go)
   const debuggerHost = Constants.expoConfig?.hostUri ?? Constants.manifest?.debuggerHost;
   if (debuggerHost) {
     const ip = debuggerHost.split(':')[0];
     return `http://${ip}:3000`;
   }
-  // Fallback
+  
+  // Fallback para mobile (TEM DE SER O TEU IP REAL DO WI-FI, 0.0.0.0 não funciona num telemóvel)
   return 'http://192.168.1.8:3000';
 }
 
@@ -50,18 +58,32 @@ async function request<T>(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers,
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-  const data = await response.json();
+  try {
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      headers,
+      signal: controller.signal,
+    });
 
-  if (!response.ok) {
-    throw new Error(data.error || `Erro HTTP ${response.status}`);
+    clearTimeout(timeoutId);
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || `Erro HTTP ${response.status}`);
+    }
+
+    return data as T;
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error(`O servidor demorou muito a responder. Verifique se o IP ${API_BASE_URL} está correto e se o backend está ligado.`);
+    }
+    throw error;
   }
-
-  return data as T;
 }
 
 // ════════════════════════════════════════════════════════════

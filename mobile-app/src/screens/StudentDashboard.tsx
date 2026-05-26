@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Alert, ActivityIndicator, RefreshControl } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
-import { getAlunoProfile, submitDeposit, clearToken, AlunoProfileResponse } from '../services/api';
+import { getAlunoProfile, clearToken, AlunoProfileResponse } from '../services/api';
 
 export default function StudentDashboard({ route, navigation }: { route: any; navigation: any }) {
   const { studentId } = route.params;
@@ -9,10 +9,6 @@ export default function StudentDashboard({ route, navigation }: { route: any; na
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [flipped, setFlipped] = useState(false);
-  const [depositAmount, setDepositAmount] = useState('');
-  const [depositRef, setDepositRef] = useState('');
-  const [depositDate, setDepositDate] = useState('');
-  const [submitting, setSubmitting] = useState(false);
 
   const loadProfile = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true); else setLoading(true);
@@ -26,23 +22,6 @@ export default function StudentDashboard({ route, navigation }: { route: any; na
   useEffect(() => { loadProfile(); }, [loadProfile]);
 
   const handleLogout = async () => { await clearToken(); navigation.replace('Login'); };
-
-  const handleSubmitDeposit = async () => {
-    const amt = parseFloat(depositAmount);
-    if (!depositAmount || !depositRef || !depositDate || isNaN(amt) || amt <= 0) {
-      Alert.alert('Erro', 'Preencha o valor, referência e data do depósito.'); return;
-    }
-    const parts = depositDate.split('/');
-    if (parts.length !== 3) { Alert.alert('Erro', 'Use o formato DD/MM/AAAA.'); return; }
-    setSubmitting(true);
-    try {
-      await submitDeposit({ studentId, amount: amt, receiptRef: depositRef.trim(), receiptDate: `${parts[2]}-${parts[1]}-${parts[0]}` });
-      setDepositAmount(''); setDepositRef(''); setDepositDate('');
-      Alert.alert('✅ Submetido', 'Comprovativo enviado à Secretaria para validação.', [{ text: 'OK', onPress: () => loadProfile() }]);
-    } catch (err: any) {
-      Alert.alert('Erro', err.message);
-    } finally { setSubmitting(false); }
-  };
 
   if (loading) return (
     <View style={s.centered}><ActivityIndicator size="large" color="#06b6d4" /><Text style={s.loadingText}>A carregar perfil...</Text></View>
@@ -79,50 +58,42 @@ export default function StudentDashboard({ route, navigation }: { route: any; na
       <TouchableOpacity style={s.cardContainer} onPress={() => setFlipped(!flipped)} activeOpacity={0.9}>
         {!flipped ? (
           <View style={[s.card, s.cardFront]}>
-            <View style={s.cardHeader}>
-              <View style={s.cardLogo}><Text style={s.cardLogoText}>AE</Text></View>
-              <Text style={s.cardInitials}>{student.name.split(' ')[0].charAt(0)} {student.name.split(' ').pop()?.charAt(0)}</Text>
-            </View>
-            <View style={s.cardBody}>
-              <View style={s.photoPlaceholder}><Text style={s.photoText}>FOTO</Text></View>
-              <View style={s.cardDetails}>
-                <Text style={s.cardName}>{student.name}</Text>
-                <Text style={s.cardClass}>{student.classGroup}</Text>
+            {/* Top Section */}
+            <View style={s.cardTop}>
+              <Text style={s.cardBrand}>IPOCARD</Text>
+              <View style={s.monogramContainer}>
+                <Text style={s.monogramText}>{student.name.split(' ')[0].charAt(0)} {student.name.split(' ').pop()?.charAt(0)}</Text>
+                <Text style={s.monogramSub}>IPOCET</Text>
               </View>
             </View>
-            <View style={s.cardFooter}>
-              <View><Text style={s.fieldLabel}>Referência:</Text><Text style={s.fieldValue}>{student.studentNumber}</Text></View>
-              <Text style={s.cardSideLabel}>FRENTE</Text>
+            
+            {/* Middle Section */}
+            <View style={s.cardMid}>
+              <Text style={s.cardName} numberOfLines={1}>{student.name}</Text>
+              <Text style={s.cardClass}>Turma: {student.classGroup}</Text>
+            </View>
+            
+            {/* Bottom Section */}
+            <View style={s.cardBottom}>
+              <View>
+                <Text style={s.fieldLabel}>Referência:</Text>
+                <Text style={s.fieldValue}>{student.studentNumber}</Text>
+              </View>
+              <View style={s.contactsContainer}>
+                <Text style={s.contactText}>CONTACTOS: +244 959 442 870</Text>
+                <Text style={s.contactText}>E-mail: ae.ipocet@gmail.com</Text>
+              </View>
             </View>
           </View>
         ) : (
           <View style={[s.card, s.cardBack]}>
             <Text style={s.cardBackTitle}>Cartão de Consumo</Text>
-            <View style={s.cardBackBody}>
-              <View style={s.stampGrid}>
-                <View style={s.stampRow}>{[1,2,3,4,5].map(i => <View key={i} style={[s.stampCircle, purchases.length >= i && s.stampFilled]} />)}</View>
-                <View style={s.stampRow}>{[6,7,8,9,10].map(i => <View key={i} style={[s.stampCircle, purchases.length >= i && s.stampFilled]} />)}</View>
-              </View>
-              <View style={s.qrContainer}><QRCode value={student.studentNumber} size={65} color="#000c3b" backgroundColor="#fff" /></View>
-            </View>
-            <View style={s.cardFooter}>
-              <Text style={s.termsText}>este cartão é pessoal e intransferível</Text>
-              <Text style={s.cardSideLabel}>VERSO</Text>
+            <View style={s.qrContainer}>
+              <QRCode value={student.studentNumber} size={110} color="#000c3b" backgroundColor="#fff" />
             </View>
           </View>
         )}
       </TouchableOpacity>
-
-      <View style={s.formSection}>
-        <Text style={s.sectionTitle}>Declarar Depósito (Top-up)</Text>
-        <Text style={s.infoText}>Após transferência para o IBAN da cantina, declare o comprovativo para validação.</Text>
-        <TextInput style={s.input} placeholder="Valor (Kz)" placeholderTextColor="#94a3b8" keyboardType="numeric" value={depositAmount} onChangeText={setDepositAmount} editable={!submitting} />
-        <TextInput style={s.input} placeholder="Referência Bancária (ex: DEP-12345)" placeholderTextColor="#94a3b8" value={depositRef} onChangeText={setDepositRef} editable={!submitting} />
-        <TextInput style={s.input} placeholder="Data do Depósito (DD/MM/AAAA)" placeholderTextColor="#94a3b8" value={depositDate} onChangeText={setDepositDate} editable={!submitting} />
-        <TouchableOpacity style={[s.submitBtn, submitting && s.disabled]} onPress={handleSubmitDeposit} disabled={submitting}>
-          {submitting ? <ActivityIndicator color="#fff" /> : <Text style={s.submitBtnText}>Submeter Fatura</Text>}
-        </TouchableOpacity>
-      </View>
 
       <View style={s.logsSection}>
         <Text style={s.sectionTitle}>Histórico de Atividade</Text>
@@ -170,37 +141,27 @@ const s = StyleSheet.create({
   balanceClass: { color: 'rgba(255,255,255,0.5)', fontSize: 10, marginTop: 4 },
   sectionTitle: { color: '#fff', fontSize: 14, fontWeight: '800', marginBottom: 12, letterSpacing: 0.5 },
   cardContainer: { alignItems: 'center', marginBottom: 28 },
-  card: { width: 320, height: 185, backgroundColor: '#f8fafc', borderRadius: 16, padding: 14, justifyContent: 'space-between', elevation: 8 },
+  
+  /* New Card Styles matching Admin-Web */
+  card: { width: 340, height: 200, backgroundColor: '#f8fafc', borderRadius: 16, padding: 16, justifyContent: 'space-between', elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8 },
   cardFront: { borderWidth: 1, borderColor: '#e2e8f0' },
-  cardBack: { borderWidth: 1, borderColor: '#e2e8f0' },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  cardLogo: { width: 32, height: 32, borderRadius: 8, backgroundColor: '#0f2b92', alignItems: 'center', justifyContent: 'center' },
-  cardLogoText: { color: '#fff', fontSize: 13, fontWeight: '900' },
-  cardInitials: { fontSize: 28, color: '#0f2b92', fontStyle: 'italic', fontWeight: '700' },
-  cardBody: { flexDirection: 'row', alignItems: 'center' },
-  photoPlaceholder: { width: 55, height: 55, borderRadius: 6, backgroundColor: '#cbd5e1', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#0f2b92' },
-  photoText: { fontSize: 8, color: '#0f2b92', fontWeight: '800' },
-  cardDetails: { marginLeft: 12, flex: 1 },
-  cardName: { fontSize: 13, fontWeight: '900', color: '#000c3b', textTransform: 'uppercase' },
-  cardClass: { fontSize: 10, color: '#475569', marginTop: 2, fontStyle: 'italic' },
-  cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', borderTopWidth: 1, borderTopColor: '#e2e8f0', paddingTop: 8 },
-  fieldLabel: { fontSize: 8, color: '#64748b', fontWeight: '700' },
-  fieldValue: { fontSize: 10, fontWeight: '800', color: '#0f2b92' },
-  cardSideLabel: { fontSize: 7, fontWeight: '900', color: '#94a3b8' },
-  cardBackTitle: { fontSize: 13, fontWeight: '800', color: '#000c3b', textAlign: 'center' },
-  cardBackBody: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 8 },
-  stampGrid: { gap: 8 },
-  stampRow: { flexDirection: 'row', gap: 6 },
-  stampCircle: { width: 20, height: 20, borderRadius: 10, borderWidth: 1.2, borderColor: '#64748b' },
-  stampFilled: { backgroundColor: '#0f2b92', borderColor: '#0f2b92' },
-  qrContainer: { padding: 4, backgroundColor: '#fff', borderRadius: 8, borderWidth: 1, borderColor: '#e2e8f0' },
-  termsText: { fontSize: 8, color: '#64748b', fontStyle: 'italic' },
-  formSection: { backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 20, padding: 16, marginBottom: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
-  infoText: { color: '#94a3b8', fontSize: 10, lineHeight: 14, marginBottom: 12 },
-  input: { backgroundColor: '#000826', borderWidth: 1, borderColor: 'rgba(15,43,146,0.4)', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, color: '#fff', fontSize: 12, marginBottom: 10 },
-  submitBtn: { backgroundColor: '#0f2b92', borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
-  disabled: { opacity: 0.6 },
-  submitBtnText: { color: '#fff', fontSize: 12, fontWeight: '800' },
+  cardBack: { borderWidth: 1, borderColor: '#e2e8f0', justifyContent: 'center', alignItems: 'center' },
+  cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  cardBrand: { fontSize: 18, fontWeight: '900', color: '#000c3b', letterSpacing: -0.5 },
+  monogramContainer: { alignItems: 'flex-end' },
+  monogramText: { fontSize: 36, color: '#0f2b92', fontWeight: '700', fontStyle: 'italic', transform: [{ rotate: '-6deg' }], opacity: 0.8 },
+  monogramSub: { fontSize: 8, color: '#94a3b8', letterSpacing: 2, marginTop: -2 },
+  cardMid: { marginTop: -10 },
+  cardName: { fontSize: 17, fontWeight: '900', color: '#000c3b', textTransform: 'uppercase' },
+  cardClass: { fontSize: 12, color: '#475569', fontStyle: 'italic', marginTop: 2 },
+  cardBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', borderTopWidth: 1, borderTopColor: 'rgba(226, 232, 240, 0.6)', paddingTop: 8 },
+  fieldLabel: { fontSize: 10, color: '#475569', fontWeight: '600' },
+  fieldValue: { fontSize: 11, fontWeight: '800', color: '#0f2b92', letterSpacing: 0.5 },
+  contactsContainer: { alignItems: 'flex-end' },
+  contactText: { fontSize: 8, color: '#64748b', fontStyle: 'italic' },
+  cardBackTitle: { fontSize: 20, fontWeight: '700', color: '#000c3b', fontStyle: 'italic', marginBottom: 16 },
+  qrContainer: { padding: 12, backgroundColor: '#fff', borderRadius: 16, borderWidth: 1, borderColor: '#e2e8f0', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
+  
   logsSection: { backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: 20, padding: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
   emptyText: { color: '#64748b', fontSize: 12, textAlign: 'center', paddingVertical: 20 },
   logItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#000826', borderRadius: 10, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: 'rgba(15,43,146,0.15)' },

@@ -7,7 +7,7 @@ import {
   TextInput, 
   Alert 
 } from 'react-native';
-import { Camera, CameraView } from 'expo-camera';
+import { Camera } from 'expo-camera';
 
 export default function CantinaScanner({ navigation }: { navigation: any }) {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
@@ -77,12 +77,9 @@ export default function CantinaScanner({ navigation }: { navigation: any }) {
 
       {/* Camera Barcode Scanner Simulator/View */}
       <View style={styles.cameraContainer}>
-        {/* If running on actual device/expo, CameraView is loaded */}
-        <CameraView
-          onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
-          barcodeScannerSettings={{
-            barcodeTypes: ['qr'],
-          }}
+        {/* If running on actual device/expo, Camera is loaded */}
+        <Camera
+          onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
           style={StyleSheet.absoluteFillObject}
         />
         

@@ -1,61 +1,71 @@
-# Como Executar o Ecossistema IPOCARD
+# Guia de Execução - IPOCARD Completo
 
-O projeto IPOCARD é constituído por três partes principais que precisam estar a correr em simultâneo:
-1. **Base de Dados & Backend** (PostgreSQL via Docker e Fastify)
-2. **Admin Web** (React / Vite)
-3. **Mobile App** (React Native / Expo Go)
+O IPOCARD é composto por 3 módulos principais: A **Base de Dados/Backend**, a **Gestão Web** e a **Aplicação Mobile**.
+Para correr o sistema de forma limpa e completa na tua máquina, segue as instruções abaixo.
 
 ---
 
-## 1. Base de Dados
-A base de dados é gerida via Docker e foi configurada no ficheiro `docker-compose.yml`.
+## 1. Executar o Servidor Backend e a Base de Dados
 
-```bash
-cd "/home/klaus/Klaus LInux/IPOCARD"
-docker compose up -d
-```
-*(Nota: Certifica-te de que o serviço Docker no teu sistema operativo está ligado)*
+O backend fornece as APIs que comunicam com a base de dados PostgreSQL.
 
-## 2. Iniciar o Backend API (Fastify)
-O backend fornece todos os endpoints para o painel admin e app mobile.
+1. Abre o teu terminal.
+2. Navega até à pasta do backend:
+   ```bash
+   cd "/home/klaus/Klaus LInux/IPOCARD/backend"
+   ```
+3. Inicia o servidor em modo de desenvolvimento:
+   ```bash
+   npm run dev
+   ```
+> **Nota:** O backend deve ficar a rodar no endereço `http://localhost:3000`. Não feches esta janela.
 
-Abra uma janela de terminal:
-```bash
-cd "/home/klaus/Klaus LInux/IPOCARD/backend"
-# Instala as dependências, caso não tenhas feito antes
-npm install
-# Inicia o servidor em modo desenvolvimento
-npm run dev
-```
-*(O servidor irá correr em `http://localhost:3000`)*
+---
 
-## 3. Iniciar o Painel de Administração (Web)
-O admin web é onde a secretaria faz toda a gestão.
+## 2. Executar o Painel de Administração Web (Admin)
 
-Abra uma nova janela de terminal:
-```bash
-cd "/home/klaus/Klaus LInux/IPOCARD/admin-web"
-# Instala dependências, caso necessário
-npm install
-# Inicia a aplicação web
-npm run dev
-```
-*(A aplicação web geralmente vai correr em `http://localhost:5173`)*
+Este painel serve para a Secretaria e permite a emissão de cartões, gestão de credenciais e lançamento de depósitos.
 
-## 4. Iniciar a App Mobile (Expo Go)
-Para a aplicação móvel, usamos a plataforma Expo.
+1. Abre um **novo** separador no teu terminal.
+2. Navega até à pasta do admin-web:
+   ```bash
+   cd "/home/klaus/Klaus LInux/IPOCARD/admin-web"
+   ```
+3. Inicia a interface web:
+   ```bash
+   npm run dev
+   ```
+> **Nota:** O painel de gestão estará acessível no teu browser, geralmente através do endereço `http://localhost:5173`.
 
-Abra uma terceira janela de terminal:
-```bash
-cd "/home/klaus/Klaus LInux/IPOCARD/mobile-app"
-# Instala as dependências de forma segura
-npm install --legacy-peer-deps
-# Inicia o servidor Expo no teu computador
-npx expo start --lan
-```
+---
 
-### Como testar no telemóvel físico:
-1. Certifica-te que o teu telemóvel e o computador estão ligados à **mesma rede Wi-Fi**.
-2. Descarrega a aplicação **Expo Go** no teu telemóvel (pela Google Play Store ou App Store).
-3. No terminal onde executaste o Expo, aparecerá um QR Code.
-4. Abre o Expo Go no telemóvel e seleciona **Scan QR Code**, aponta a câmara, e a aplicação será transferida em tempo real!
+## 3. Executar a Aplicação Mobile (Expo Go)
+
+A app mobile é para os estudantes usarem e para o operador da cantina (POS).
+
+1. Abre um **terceiro** separador no teu terminal.
+2. Navega até à pasta mobile-app:
+   ```bash
+   cd "/home/klaus/Klaus LInux/IPOCARD/mobile-app"
+   ```
+3. Instala as dependências se for a primeira vez (ou se houve alterações):
+   ```bash
+   npm install --legacy-peer-deps
+   ```
+4. Inicia o servidor Expo em modo rede local:
+   ```bash
+   npx expo start --lan
+   ```
+
+### 📱 Como Acessar a App no Telemóvel:
+- Certifica-te de que o teu telemóvel está ligado ao **mesmo Wi-Fi** que o teu computador.
+- Instala a aplicação **Expo Go** na Google Play Store (Android) ou App Store (iOS).
+- Na app Expo Go, seleciona "Scan QR Code".
+- Aponta a câmara para o **QR Code que apareceu no teu terminal**.
+
+---
+
+### Credenciais Padrão
+Se estiveres a testar:
+- **Cantina:** Username: `cantina` / Senha: `cant123`
+- **Estudante Inicial:** Vais poder encontrar (ou atribuir) as senhas dos estudantes através da nova aba **Credenciais** na plataforma Web (Admin).

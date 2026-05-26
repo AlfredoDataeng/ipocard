@@ -17,26 +17,58 @@ export default function LoginScreen({ navigation }: { navigation: any }) {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleLogin = async () => {
+    setErrorMessage(''); // Limpar erros anteriores
+    
     if (!identifier || !password) {
-      Alert.alert('Erro', 'Por favor, preencha todos os campos.');
+      setErrorMessage('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
 
     setLoading(true);
+    
     try {
+      const endpoint = role === 'ALUNO' ? '/api/auth/login/student' : '/api/auth/login/staff';
+      const bodyPayload = role === 'ALUNO' 
+        ? { studentNumber: identifier.trim(), password }
+        : { username: identifier.trim(), password };
+        
+      console.log(`A enviar pedido para: ${API_BASE_URL}${endpoint}`);
+        
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyPayload)
+      });
+      
+      const textResponse = await response.text();
+      let data;
+      try {
+        data = JSON.parse(textResponse);
+      } catch (e) {
+        console.error("Not a JSON response:", textResponse);
+        throw new Error("O servidor não retornou JSON válido. Pode estar desligado.");
+      }
+      
+      if (!response.ok) {
+        setErrorMessage(data.error || `Erro de servidor HTTP ${response.status}`);
+        setLoading(false);
+        return;
+      }
+      
+      await saveToken(data.token);
+      
       if (role === 'ALUNO') {
-        const res = await loginStudent(identifier.trim(), password);
-        await saveToken(res.token);
-        navigation.replace('StudentDashboard', { studentId: res.student.id });
+        navigation.replace('StudentDashboard', { studentId: data.student.id });
       } else {
-        const res = await loginStaff(identifier.trim(), password);
-        await saveToken(res.token);
         navigation.replace('CantinaScanner');
       }
+      
     } catch (err: any) {
-      Alert.alert('Erro de Autenticação', err.message || 'Não foi possível ligar ao servidor.');
+      console.log('Login Error:', err);
+      setErrorMessage(`Falha na Rede: ${err.message}. O backend em ${API_BASE_URL} está ligado?`);
     } finally {
       setLoading(false);
     }
@@ -103,6 +135,14 @@ export default function LoginScreen({ navigation }: { navigation: any }) {
               editable={!loading}
             />
           </View>
+
+          {errorMessage ? (
+            <View style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', padding: 12, borderRadius: 12, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(239, 68, 68, 0.3)' }}>
+              <Text style={{ color: '#fca5a5', fontSize: 12, textAlign: 'center', fontWeight: 'bold' }}>
+                {errorMessage}
+              </Text>
+            </View>
+          ) : null}
 
           <TouchableOpacity
             style={[styles.button, loading && styles.buttonDisabled]}
