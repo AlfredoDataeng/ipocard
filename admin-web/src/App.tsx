@@ -30,7 +30,7 @@ const INITIAL_STUDENTS = [
 ];
 
 function App() {
-  const [currentView, setCurrentView] = useState<'secretaria' | 'alunos' | 'simulador' | 'recibos'>('secretaria');
+  const [currentView, setCurrentView] = useState<'secretaria' | 'alunos' | 'simulador' | 'recibos' | 'credenciais'>('secretaria');
   const [usingApi, setUsingApi] = useState<boolean>(false);
   const [toasts, setToasts] = useState<{ id: string; message: string; type: 'success' | 'error' }[]>([]);
   
@@ -50,6 +50,38 @@ function App() {
   const [newStudentName, setNewStudentName] = useState('');
   const [newStudentTurma, setNewStudentTurma] = useState('12ª Classe - Informática');
   const [editingStudent, setEditingStudent] = useState<any | null>(null);
+  
+  // Credentials
+  const [passwordValues, setPasswordValues] = useState<Record<string, string>>({});
+
+  const handleChangePassword = async (studentId: string) => {
+    const newPassword = passwordValues[studentId];
+    if (!newPassword || newPassword.length < 4) {
+      addToast('A senha deve ter pelo menos 4 caracteres.', 'error');
+      return;
+    }
+
+    if (usingApi) {
+      try {
+        const res = await fetch(`${API_BASE}/secretaria/students/${studentId}/password`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ newPassword })
+        });
+        if (res.ok) {
+          addToast('Senha atualizada com sucesso!', 'success');
+          setPasswordValues((prev) => ({ ...prev, [studentId]: '' }));
+        } else {
+          const data = await res.json();
+          addToast(data.error || 'Erro ao atualizar senha.', 'error');
+        }
+      } catch (err) {
+        addToast('Erro ao ligar ao servidor.', 'error');
+      }
+    } else {
+      addToast('Apenas suportado no modo API online.', 'error');
+    }
+  };
 
   // Physical deposit inputs (Secretariat)
   const [selectedDepositStudentId, setSelectedDepositStudentId] = useState('');
@@ -560,6 +592,17 @@ function App() {
             }`}
           >
             Simulador
+          </button>
+          <button 
+            onClick={() => {
+              setCurrentView('credenciais');
+              setSearchTerm('');
+            }}
+            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              currentView === 'credenciais' ? 'bg-brand-royal text-white' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            Credenciais
           </button>
         </div>
       </header>
@@ -1273,6 +1316,104 @@ function App() {
                   )}
                 </tbody>
               </table>
+            </div>
+          </section>
+        </main>
+      )}
+
+      {/* VIEW: CREDENCIAIS */}
+      {currentView === 'credenciais' && (
+        <main className="relative z-10 w-full max-w-6xl mx-auto flex flex-col gap-6">
+          <section className="bg-slate-950/90 border border-white/5 p-8 rounded-3xl">
+            <div className="mb-8">
+              <h2 className="text-lg font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <UserCheck className="w-6 h-6 text-brand-cyan" />
+                Gestão de Credenciais
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">Alterar senhas dos utilizadores da aplicação móvel.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Alunos Senhas */}
+              <div>
+                <h3 className="text-sm font-bold text-white uppercase mb-4 border-b border-white/10 pb-2">Contas de Estudantes</h3>
+                <div className="relative mb-4">
+                  <input
+                    type="text"
+                    placeholder="Pesquisar aluno..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full bg-slate-900 border border-white/5 rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-slate-500 focus:outline-none transition-all"
+                  />
+                  <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-500" />
+                </div>
+                
+                <div className="space-y-3 overflow-y-auto max-h-[400px] pr-1">
+                  {filteredStudents.length === 0 ? (
+                    <p className="text-sm text-slate-500 text-center py-8">Nenhum aluno encontrado.</p>
+                  ) : (
+                    filteredStudents.map((st) => (
+                      <div key={st.id} className="bg-slate-900/60 border border-white/5 p-4 rounded-2xl">
+                        <div className="mb-2">
+                          <p className="font-bold text-white text-sm">{st.name}</p>
+                          <p className="text-xs text-slate-400 font-mono mt-0.5">{st.studentNumber}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            placeholder="Nova Senha"
+                            value={passwordValues[st.id] || ''}
+                            onChange={(e) => setPasswordValues((prev) => ({ ...prev, [st.id]: e.target.value }))}
+                            className="flex-1 bg-slate-950 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-cyan"
+                          />
+                          <button
+                            onClick={() => handleChangePassword(st.id)}
+                            className="bg-brand-royal hover:bg-brand-medium text-white px-3 py-2 rounded-lg text-xs font-bold transition-all"
+                          >
+                            Alterar
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Cantina Conta */}
+              <div>
+                <h3 className="text-sm font-bold text-white uppercase mb-4 border-b border-white/10 pb-2">Contas de Sistema (Cantina)</h3>
+                <div className="bg-slate-900/60 border border-teal-500/30 p-5 rounded-2xl relative overflow-hidden">
+                  <div className="absolute top-0 right-0 bg-teal-500/20 text-teal-400 text-[9px] font-black uppercase px-2 py-1 rounded-bl-lg">Conta Fixa</div>
+                  <p className="text-xs text-slate-400 mb-4">Esta conta é utilizada no terminal de ponto de venda (POS) da cantina.</p>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-[10px] text-slate-500 font-bold uppercase block mb-1">Nome de Utilizador</label>
+                      <input 
+                        type="text" 
+                        readOnly 
+                        value="cantina" 
+                        className="w-full bg-slate-950 border border-white/5 rounded-lg px-3 py-2 text-sm text-slate-300 font-mono cursor-not-allowed"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-500 font-bold uppercase block mb-1">Senha (Padrão)</label>
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="text" 
+                          readOnly 
+                          value="cant123" 
+                          className="flex-1 bg-slate-950 border border-white/5 rounded-lg px-3 py-2 text-sm text-slate-300 font-mono cursor-not-allowed"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between">
+                    <span className="text-[10px] text-slate-500">Configurada no código-fonte (auth.ts)</span>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </section>
         </main>

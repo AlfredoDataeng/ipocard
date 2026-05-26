@@ -1,10 +1,23 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 
 // ─────────────────────────────────────────────────────────────
-// IP LOCAL da máquina na rede Wi-Fi (para Expo Go no telemóvel)
-// Se mudar de rede, atualizar este IP
+// AUTO-DETECT: Usa o IP do servidor Expo como base para a API
+// Em dev, o Expo já sabe o IP da máquina na rede Wi-Fi.
+// Fallback para localhost se não conseguir detetar.
 // ─────────────────────────────────────────────────────────────
-export const API_BASE_URL = 'http://192.168.1.8:3000';
+function getApiBaseUrl(): string {
+  // Try to get the debugger host from Expo (works in Expo Go)
+  const debuggerHost = Constants.expoConfig?.hostUri ?? Constants.manifest?.debuggerHost;
+  if (debuggerHost) {
+    const ip = debuggerHost.split(':')[0];
+    return `http://${ip}:3000`;
+  }
+  // Fallback
+  return 'http://192.168.1.8:3000';
+}
+
+export const API_BASE_URL = getApiBaseUrl();
 
 const TOKEN_KEY = '@ipocard_token';
 

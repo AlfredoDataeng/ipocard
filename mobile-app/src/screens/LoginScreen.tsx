@@ -10,7 +10,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { loginStudent, loginStaff, saveToken } from '../services/api';
+import { loginStudent, loginStaff, saveToken, API_BASE_URL } from '../services/api';
 
 export default function LoginScreen({ navigation }: { navigation: any }) {
   const [role, setRole] = useState<'ALUNO' | 'CANTINA'>('ALUNO');
@@ -117,7 +117,7 @@ export default function LoginScreen({ navigation }: { navigation: any }) {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.footerText}>Associação Estudantil IPOCET • {'\n'}Servidor: 192.168.1.8</Text>
+        <Text style={styles.footerText}>Associação Estudantil IPOCET • {'\n'}Servidor: {API_BASE_URL.replace('http://', '').replace(':3000', '')}</Text>
       </View>
     </KeyboardAvoidingView>
   );

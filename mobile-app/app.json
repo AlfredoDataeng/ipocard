@@ -4,13 +4,7 @@
     "slug": "ipocard-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#000c3b"
-    },
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -18,15 +12,9 @@
       "supportsTablet": true
     },
     "android": {
-      "adaptiveIcon": {
-        "backgroundColor": "#000c3b"
-      },
       "permissions": [
         "android.permission.CAMERA"
       ]
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
     }
   }
 }
