@@ -3,7 +3,7 @@ import {
   PlusCircle, 
   Search, 
   XCircle, 
-  Camera, 
+
   Check,
   Edit2,
   Trash2,
@@ -14,28 +14,20 @@ import { StudentCard } from './components/StudentCard';
 
 const API_BASE = 'http://localhost:3000/api';
 
-const INITIAL_PRODUCTS = [
-  { id: '1', name: 'Hambúrguer de Novilho', price: 1200 },
-  { id: '2', name: 'Sumo Natural de Laranja', price: 500 },
-  { id: '3', name: 'Sandes de Queijo e Fiambre', price: 800 },
-  { id: '4', name: 'Fatia de Bolo de Chocolate', price: 600 },
-  { id: '5', name: 'Água Mineral IPOCET', price: 300 },
-  { id: '6', name: 'Cachorro Quente Especial', price: 1000 }
-];
 
 const INITIAL_STUDENTS = [
-  { id: 'ae-student-1', name: 'MATHEUS DOMINGOS', studentNumber: 'IC-IPOCET-2026-001', classGroup: '12ª Classe - Informática', balance: 15000 },
-  { id: 'ae-student-2', name: 'BEATRIZ GONÇALVES', studentNumber: 'IC-IPOCET-2026-002', classGroup: '11ª Classe - Construção Civil', balance: 500 },
-  { id: 'ae-student-3', name: 'FRANCISCO COSTA', studentNumber: 'IC-IPOCET-2026-003', classGroup: '10ª Classe - Eletricidade', balance: 0 }
+  { id: 'student-1', name: 'MATHEUS DOMINGOS', studentNumber: 'IC-IPOCET-2026-001', classGroup: '12ª Classe - Informática', balance: 15000 },
+  { id: 'student-2', name: 'BEATRIZ GONÇALVES', studentNumber: 'IC-IPOCET-2026-002', classGroup: '11ª Classe - Construção Civil', balance: 500 },
+  { id: 'student-3', name: 'FRANCISCO COSTA', studentNumber: 'IC-IPOCET-2026-003', classGroup: '10ª Classe - Eletricidade', balance: 0 }
 ];
 
 function App() {
-  const [currentView, setCurrentView] = useState<'secretaria' | 'alunos' | 'simulador' | 'recibos' | 'credenciais'>('secretaria');
+  const [currentView, setCurrentView] = useState<'secretaria' | 'alunos' | 'recibos' | 'credenciais'>('secretaria');
   const [usingApi, setUsingApi] = useState<boolean>(false);
   const [toasts, setToasts] = useState<{ id: string; message: string; type: 'success' | 'error' }[]>([]);
   
   const [students, setStudents] = useState<any[]>(INITIAL_STUDENTS);
-  const [products] = useState<any[]>(INITIAL_PRODUCTS);
+
   const [deposits, setDeposits] = useState<any[]>([]);
   const [purchases, setPurchases] = useState<any[]>([]);
   const [selectedMonitorType, setSelectedMonitorType] = useState<'all' | 'deposits' | 'purchases'>('all');
@@ -89,13 +81,7 @@ function App() {
   const [depositSearchQuery, setDepositSearchQuery] = useState('');
   const [depositDropdownOpen, setDepositDropdownOpen] = useState(false);
 
-  const [simulatedStudentId, setSimulatedStudentId] = useState('ae-student-1');
-  const [cardFlipped, setCardFlipped] = useState(false);
 
-  const [canteenCart, setCanteenCart] = useState<{ product: any; quantity: number }[]>([]);
-  const [isScanning, setIsScanning] = useState(false);
-  const [scannedStudent, setScannedStudent] = useState<any>(null);
-  const [canteenReceipt, setCanteenReceipt] = useState<any>(null);
 
   const addToast = (message: string, type: 'success' | 'error' = 'success') => {
     const id = Math.random().toString();
@@ -238,7 +224,7 @@ function App() {
         const studentNumber = `IC-IPOCET-${currentYear}-${String(nextSeq).padStart(3, '0')}`;
 
         const newSt = {
-          id: 'ae-student-' + Date.now(),
+          id: 'student-' + Date.now(),
           name: newStudentName.toUpperCase(),
           studentNumber,
           classGroup: newStudentTurma,
@@ -355,137 +341,16 @@ function App() {
     }
   };
 
-  const handleAddToCart = (product: any) => {
-    setCanteenCart((prev) => {
-      const existing = prev.find((item) => item.product.id === product.id);
-      if (existing) {
-        return prev.map((item) => 
-          item.product.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-        );
-      }
-      return [...prev, { product, quantity: 1 }];
-    });
-  };
 
-  const handleRemoveFromCart = (productId: string) => {
-    setCanteenCart((prev) => 
-      prev.map((item) => 
-        item.product.id === productId ? { ...item, quantity: item.quantity - 1 } : item
-      ).filter((item) => item.quantity > 0)
-    );
-  };
-
-  const getCartTotal = () => {
-    return canteenCart.reduce((total, item) => total + (item.product.price * item.quantity), 0);
-  };
-
-  const handleSimulateScan = () => {
-    if (!cardFlipped) {
-      addToast('Vire o cartão do estudante para o verso para mostrar o QR Code!', 'error');
-      return;
-    }
-    setIsScanning(true);
-    setScannedStudent(null);
-    setCanteenReceipt(null);
-    
-    setTimeout(() => {
-      setIsScanning(false);
-      const currentSimulated = students.find((s) => s.id === simulatedStudentId);
-      if (currentSimulated) {
-        setScannedStudent(currentSimulated);
-        addToast(`Código QR Escaneado!`, 'success');
-      }
-    }, 800);
-  };
-
-  const handleConfirmPurchase = async () => {
-    if (!scannedStudent || canteenCart.length === 0) return;
-    const total = getCartTotal();
-
-    if (scannedStudent.balance < total) {
-      addToast('Saldo insuficiente!', 'error');
-      return;
-    }
-
-    const cartItems = canteenCart.map((item) => ({
-      productId: item.product.id,
-      name: item.product.name,
-      price: item.product.price,
-      quantity: item.quantity
-    }));
-
-    if (usingApi) {
-      try {
-        const res = await fetch(`${API_BASE}/cantina/purchases`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ studentId: scannedStudent.id, items: cartItems })
-        });
-        if (res.ok) {
-          addToast('Venda realizada!', 'success');
-          setCanteenReceipt({
-            studentName: scannedStudent.name,
-            studentNumber: scannedStudent.studentNumber,
-            total,
-            items: cartItems,
-            date: new Date().toISOString()
-          });
-          setCanteenCart([]);
-          setScannedStudent(null);
-          loadData();
-        }
-      } catch (err) {
-        addToast('Erro na cobrança.', 'error');
-      }
-    } else {
-      const updatedSts = students.map((s) => {
-        if (s.id === scannedStudent.id) {
-          return { ...s, balance: s.balance - total };
-        }
-        return s;
-      });
-
-      const newPurchLog = {
-        id: 'purch-' + Date.now(),
-        studentId: scannedStudent.id,
-        totalAmount: total,
-        items: cartItems,
-        createdAt: new Date().toISOString(),
-        student: {
-          name: scannedStudent.name,
-          studentNumber: scannedStudent.studentNumber,
-          classGroup: scannedStudent.classGroup
-        }
-      };
-      const updatedPurchases = [newPurchLog, ...purchases];
-
-      saveStateLocally(updatedSts, deposits, updatedPurchases);
-      
-      setCanteenReceipt({
-        studentName: scannedStudent.name,
-        studentNumber: scannedStudent.studentNumber,
-        total,
-        items: cartItems,
-        date: new Date().toISOString()
-      });
-
-      setCanteenCart([]);
-      setScannedStudent(null);
-      addToast('Venda realizada!', 'success');
-    }
-  };
-
-  const filteredStudents = students.filter((s) => 
-    s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  const filteredStudents = students.filter((s) =>
+    s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.studentNumber.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const depositFilteredStudents = students.filter((s) => 
-    s.name.toLowerCase().includes(depositSearchQuery.toLowerCase()) || 
+  const depositFilteredStudents = students.filter((s) =>
+    s.name.toLowerCase().includes(depositSearchQuery.toLowerCase()) ||
     s.studentNumber.toLowerCase().includes(depositSearchQuery.toLowerCase())
   );
-
-  const simulatedStudent = students.find((s) => s.id === simulatedStudentId) || students[0];
 
   // Unified transaction history for monitoring and audits
   const unifiedTransactions = [
@@ -582,17 +447,7 @@ function App() {
           >
             Recibos/Monitor
           </button>
-          <button 
-            onClick={() => {
-              setCurrentView('simulador');
-              setSearchTerm('');
-            }}
-            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
-              currentView === 'simulador' ? 'bg-brand-royal text-white' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Simulador
-          </button>
+
           <button 
             onClick={() => {
               setCurrentView('credenciais');
@@ -899,274 +754,6 @@ function App() {
 
         </main>
       )}
-
-      {/* VIEW: SIMULADOR */}
-      {currentView === 'simulador' && (
-        <main className="relative z-10 w-full max-w-4xl mx-auto flex flex-col md:flex-row gap-8 justify-center py-4">
-          
-          {/* PHONE 1: STUDENT MOBILE */}
-          <div className="relative mx-auto w-[330px] h-[640px] bg-slate-950 rounded-[40px] border-[6px] border-slate-800 shadow-2xl flex flex-col justify-between overflow-hidden">
-            
-            {/* Notch */}
-            <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-28 h-5 bg-slate-800 rounded-full z-30 flex items-center justify-center">
-              <span className="w-1.5 h-1.5 bg-slate-950 rounded-full"></span>
-            </div>
-
-            {/* Screen Content */}
-            <div className="flex-1 flex flex-col bg-[#010206] px-4 py-6 overflow-y-auto mt-6">
-              <div className="mb-4">
-                <span className="text-[8px] font-bold text-slate-500 block uppercase mb-1">Selecionar Conta:</span>
-                <select 
-                  value={simulatedStudentId}
-                  onChange={(e) => {
-                    setSimulatedStudentId(e.target.value);
-                    setCardFlipped(false);
-                    setScannedStudent(null);
-                  }}
-                  className="w-full bg-slate-900 border border-white/5 rounded-lg p-2 text-xs text-white focus:outline-none"
-                >
-                  {students.map((s) => (
-                    <option key={s.id} value={s.id}>{s.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Balance Widget */}
-              <div className="bg-brand-royal border border-white/10 p-4 rounded-2xl flex flex-col mb-4">
-                <span className="text-[9px] font-extrabold text-brand-cyan uppercase tracking-wider">Saldo Estudante</span>
-                <span className="text-2xl font-black text-white mt-1">
-                  {simulatedStudent?.balance.toLocaleString('pt-PT')} <span className="text-xs">Kz</span>
-                </span>
-              </div>
-
-              {/* Card visual representation - Premium 3D Flipping Card */}
-              <div className="flex flex-col items-center mb-4">
-                <span className="text-[8px] text-slate-500 font-bold uppercase mb-2">Toca no cartão para girar:</span>
-                <div 
-                  onClick={() => setCardFlipped(!cardFlipped)}
-                  className="w-[266px] h-[154px] perspective-1000 cursor-pointer relative"
-                >
-                  <div className={`w-full h-full duration-700 preserve-3d relative transition-transform ${cardFlipped ? 'rotate-y-180' : ''}`}>
-                    {/* Front Face */}
-                    <div className="absolute inset-0 backface-hidden w-full h-full flex items-center justify-center">
-                      <div className="scale-[0.7] origin-center">
-                        <StudentCard 
-                          student={simulatedStudent}
-                          side="front"
-                        />
-                      </div>
-                    </div>
-                    {/* Back Face */}
-                    <div className="absolute inset-0 backface-hidden rotate-y-180 w-full h-full flex items-center justify-center">
-                      <div className="scale-[0.7] origin-center">
-                        <StudentCard 
-                          student={simulatedStudent}
-                          side="back"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Recentes Transações do Estudante */}
-              <div className="flex-1 flex flex-col bg-slate-950/80 border border-white/5 rounded-2xl p-3 overflow-hidden min-h-[220px]">
-                <span className="text-[9px] text-slate-500 font-bold uppercase block mb-2">Extrato de Conta</span>
-                
-                <div className="flex-1 overflow-y-auto space-y-2 pr-0.5">
-                  {unifiedTransactions.filter(tx => tx.studentNumber === simulatedStudent?.studentNumber).length === 0 ? (
-                    <p className="text-[10px] text-slate-650 text-center py-8">Nenhum movimento recente.</p>
-                  ) : (
-                    unifiedTransactions
-                      .filter(tx => tx.studentNumber === simulatedStudent?.studentNumber)
-                      .map((tx) => (
-                        <div key={tx.id} className="flex justify-between items-center text-[10px] bg-slate-900/60 border border-white/5 p-2 rounded-xl">
-                          <div>
-                            <p className="text-white font-bold truncate max-w-[130px] uppercase">
-                              {tx.type === 'DEPOSIT' ? 'Depósito Recebido' : tx.details}
-                            </p>
-                            <span className="text-[8px] text-slate-500 font-mono">
-                              {tx.date.toLocaleDateString('pt-PT')} | {tx.reference.substring(0, 15)}
-                            </span>
-                          </div>
-                          <span className={`font-black ${tx.type === 'DEPOSIT' ? 'text-teal-400' : 'text-rose-400'}`}>
-                            {tx.type === 'DEPOSIT' ? '+' : ''}{tx.amount.toLocaleString('pt-PT')} Kz
-                          </span>
-                        </div>
-                      ))
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Bottom Bar */}
-            <div className="h-4 bg-slate-950 flex items-center justify-center pb-1">
-              <span className="w-20 h-0.5 bg-slate-700 rounded-full"></span>
-            </div>
-          </div>
-
-          {/* PHONE 2: CANTEEN MOBILE */}
-          <div className="relative mx-auto w-[330px] h-[640px] bg-slate-950 rounded-[40px] border-[6px] border-slate-800 shadow-2xl flex flex-col justify-between overflow-hidden">
-            
-            {/* Notch */}
-            <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-28 h-5 bg-slate-800 rounded-full z-30 flex items-center justify-center">
-              <span className="w-1.5 h-1.5 bg-slate-950 rounded-full"></span>
-            </div>
-
-            {/* Screen Content */}
-            <div className="flex-1 flex flex-col bg-[#010206] px-4 py-6 overflow-y-auto mt-6 relative">
-              
-              {/* Scan Section */}
-              {scannedStudent ? (
-                <div className="bg-teal-500/10 border border-teal-500/20 p-3 rounded-2xl flex flex-col relative mb-4">
-                  <button onClick={() => setScannedStudent(null)} className="absolute top-2 right-2 text-slate-400">
-                    <XCircle className="w-4 h-4" />
-                  </button>
-                  <span className="text-[8px] text-teal-400 font-extrabold uppercase">Estudante Identificado</span>
-                  <p className="text-xs font-bold text-white mt-1">{scannedStudent.name}</p>
-                  <p className="text-xs font-extrabold text-teal-300 mt-0.5">Saldo: {scannedStudent.balance.toLocaleString('pt-PT')} Kz</p>
-                </div>
-              ) : (
-                <div className="bg-slate-950/60 border border-white/5 p-4 rounded-2xl text-center mb-4">
-                  <button 
-                    onClick={handleSimulateScan}
-                    disabled={isScanning}
-                    className="w-full bg-brand-royal text-white font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1 transition-all"
-                  >
-                    <Camera className="w-4 h-4" />
-                    {isScanning ? 'A Ler Cartão...' : 'Escanear Código QR'}
-                  </button>
-                </div>
-              )}
-
-              {/* Menu items */}
-              <div className="mb-4">
-                <span className="text-[9px] text-slate-500 font-bold uppercase block mb-2">Produtos da Cantina</span>
-                <div className="grid grid-cols-2 gap-2 max-h-[140px] overflow-y-auto pr-1">
-                  {products.map((p) => {
-                    // Category color coding
-                    let catColor = "bg-blue-500/10 border-blue-500/20 text-blue-400";
-                    if (p.category === 'Lanches') catColor = "bg-amber-500/10 border-amber-500/20 text-amber-400";
-                    else if (p.category === 'Sobremesas') catColor = "bg-purple-500/10 border-purple-500/20 text-purple-400";
-
-                    return (
-                      <button 
-                        key={p.id}
-                        onClick={() => handleAddToCart(p)}
-                        className="bg-slate-950/80 border border-white/5 p-2 rounded-xl text-left hover:bg-brand-royal/10 hover:border-brand-royal/35 transition-all flex flex-col justify-between h-[64px]"
-                      >
-                        <div className="flex justify-between items-start w-full">
-                          <p className="text-[10px] font-bold text-white truncate max-w-[80px]" title={p.name}>{p.name}</p>
-                          <span className={`px-1 py-0.5 rounded text-[7px] font-extrabold uppercase ${catColor}`}>
-                            {p.category}
-                          </span>
-                        </div>
-                        <span className="text-[11px] text-brand-cyan font-black">{p.price.toLocaleString('pt-PT')} Kz</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* POS Cart list */}
-              <div className="bg-slate-950/80 border border-white/5 p-3 rounded-2xl flex-1 flex flex-col justify-between min-h-[160px]">
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-[9px] text-slate-500 font-bold uppercase">Venda Atual</span>
-                    {canteenCart.length > 0 && (
-                      <button 
-                        onClick={() => setCanteenCart([])}
-                        className="text-[8px] text-rose-400 hover:text-rose-300 font-black uppercase tracking-wider"
-                      >
-                        Limpar
-                      </button>
-                    )}
-                  </div>
-                  
-                  {canteenCart.length === 0 ? (
-                    <p className="text-[10px] text-slate-500 text-center py-4">Carrinho vazio</p>
-                  ) : (
-                    <div className="mt-2 space-y-1.5 max-h-[70px] overflow-y-auto pr-1">
-                      {canteenCart.map((item) => (
-                        <div key={item.product.id} className="flex justify-between items-center text-[10px] bg-slate-900/60 p-1.5 rounded-lg border border-white/5">
-                          <span className="text-white truncate max-w-[120px] font-bold">{item.product.name}</span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-slate-400">{item.quantity}x</span>
-                            <span className="text-brand-cyan font-bold">{(item.product.price * item.quantity).toLocaleString('pt-PT')} Kz</span>
-                            <button 
-                              onClick={() => handleRemoveFromCart(item.product.id)} 
-                              className="w-5 h-5 bg-red-950/30 hover:bg-red-900 text-red-400 hover:text-white rounded flex items-center justify-center font-black transition-all text-xs"
-                            >
-                              -
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="border-t border-white/5 pt-2 mt-2">
-                  <div className="flex justify-between text-xs font-bold text-white mb-2">
-                    <span>Total a cobrar:</span>
-                    <span className="text-brand-cyan font-black">{getCartTotal().toLocaleString('pt-PT')} Kz</span>
-                  </div>
-                  <button 
-                    onClick={handleConfirmPurchase}
-                    disabled={canteenCart.length === 0 || !scannedStudent}
-                    className="w-full bg-teal-600 hover:bg-teal-500 disabled:bg-slate-800 disabled:text-slate-600 text-white font-bold text-xs py-2.5 rounded-xl transition-all"
-                  >
-                    {!scannedStudent ? 'Aguardando Leitura' : 'Confirmar Venda'}
-                  </button>
-                </div>
-              </div>
-
-              {/* Receipt popup */}
-              {canteenReceipt && (
-                <div className="absolute inset-0 bg-slate-950/95 z-30 flex items-center justify-center p-4">
-                  <div className="bg-white text-slate-800 rounded-3xl p-4 w-full shadow-2xl border border-slate-200 animate-scale-up font-mono text-[10px]">
-                    <div className="text-center pb-2 border-b border-dashed border-slate-300">
-                      <h4 className="font-sans font-black text-xs uppercase tracking-wider">IPOCARD RECIBO</h4>
-                      <p className="text-[8px] text-slate-500">{new Date(canteenReceipt.date).toLocaleTimeString('pt-PT')}</p>
-                    </div>
-
-                    <div className="py-2 border-b border-dashed border-slate-300 space-y-1">
-                      <p>Aluno: <span className="font-bold">{canteenReceipt.studentName}</span></p>
-                      <div className="text-[8px] font-sans text-slate-400 mt-1">ITENS:</div>
-                      {canteenReceipt.items.map((it: any, idx: number) => (
-                        <div key={idx} className="flex justify-between text-[9px] pl-1">
-                          <span>{it.quantity}x {it.name}</span>
-                          <span>{it.price * it.quantity} Kz</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="py-2 flex justify-between font-sans">
-                      <span className="font-bold">Pago:</span>
-                      <span className="font-black text-teal-600">{canteenReceipt.total} Kz</span>
-                    </div>
-
-                    <button 
-                      onClick={() => setCanteenReceipt(null)}
-                      className="w-full bg-slate-900 text-white font-bold py-2 rounded-lg transition-all font-sans text-xs"
-                    >
-                      Fechar Recibo
-                    </button>
-                  </div>
-                </div>
-              )}
-
-            </div>
-
-            {/* Bottom Bar */}
-            <div className="h-4 bg-slate-950 flex items-center justify-center pb-1">
-              <span className="w-20 h-0.5 bg-slate-700 rounded-full"></span>
-            </div>
-          </div>
-
-        </main>
-      )}
-
       {/* VIEW: RECIBOS (MONITOR DE TRANSAÇÕES) */}
       {currentView === 'recibos' && (
         <main className="relative z-10 w-full max-w-6xl mx-auto flex flex-col gap-6">

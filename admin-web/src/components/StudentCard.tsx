@@ -79,7 +79,7 @@ export const StudentCard: React.FC<StudentCardProps> = ({
 
           <div className="flex flex-col items-end text-[7.5px] text-slate-500 font-handwritten">
             <span>CONTACTOS: +244 959 442 870</span>
-            <span>E-mail: ae.ipocet@gmail.com</span>
+            <span>E-mail: ipocard.ipocet@gmail.com</span>
           </div>
         </div>
       </div>

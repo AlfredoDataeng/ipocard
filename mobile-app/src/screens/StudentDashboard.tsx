@@ -81,7 +81,7 @@ export default function StudentDashboard({ route, navigation }: { route: any; na
               </View>
               <View style={s.contactsContainer}>
                 <Text style={s.contactText}>CONTACTOS: +244 959 442 870</Text>
-                <Text style={s.contactText}>E-mail: ae.ipocet@gmail.com</Text>
+                <Text style={s.contactText}>E-mail: ipocard.ipocet@gmail.com</Text>
               </View>
             </View>
           </View>
@@ -123,9 +123,9 @@ export default function StudentDashboard({ route, navigation }: { route: any; na
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000c3b' },
+  container: { flex: 1, backgroundColor: '#010206' },
   content: { padding: 20, paddingBottom: 40 },
-  centered: { flex: 1, backgroundColor: '#000c3b', justifyContent: 'center', alignItems: 'center' },
+  centered: { flex: 1, backgroundColor: '#010206', justifyContent: 'center', alignItems: 'center' },
   loadingText: { color: '#94a3b8', marginTop: 12 },
   errorText: { color: '#f87171', marginBottom: 16 },
   retryBtn: { backgroundColor: '#0f2b92', borderRadius: 10, paddingHorizontal: 20, paddingVertical: 10 },
@@ -162,9 +162,9 @@ const s = StyleSheet.create({
   cardBackTitle: { fontSize: 20, fontWeight: '700', color: '#000c3b', fontStyle: 'italic', marginBottom: 16 },
   qrContainer: { padding: 12, backgroundColor: '#fff', borderRadius: 16, borderWidth: 1, borderColor: '#e2e8f0', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
   
-  logsSection: { backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: 20, padding: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  logsSection: { backgroundColor: '#020617', borderRadius: 20, padding: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
   emptyText: { color: '#64748b', fontSize: 12, textAlign: 'center', paddingVertical: 20 },
-  logItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#000826', borderRadius: 10, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: 'rgba(15,43,146,0.15)' },
+  logItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#090e1a', borderRadius: 10, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: 'rgba(15,43,146,0.15)' },
   logTitle: { color: '#fff', fontSize: 11, fontWeight: '700' },
   logSub: { color: '#94a3b8', fontSize: 9, fontFamily: 'monospace', marginTop: 2 },
   logDate: { color: '#64748b', fontSize: 8, marginTop: 2 },

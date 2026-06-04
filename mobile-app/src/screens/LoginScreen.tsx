@@ -157,7 +157,7 @@ export default function LoginScreen({ navigation }: { navigation: any }) {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.footerText}>Associação Estudantil IPOCET • {'\n'}Servidor: {API_BASE_URL.replace('http://', '').replace(':3000', '')}</Text>
+        <Text style={styles.footerText}>IPOCET • {'\n'}Servidor: {API_BASE_URL.replace('http://', '').replace(':3000', '')}</Text>
       </View>
     </KeyboardAvoidingView>
   );
@@ -166,7 +166,7 @@ export default function LoginScreen({ navigation }: { navigation: any }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000c3b',
+    backgroundColor: '#010206',
   },
   content: {
     flex: 1,
@@ -208,12 +208,12 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(15, 43, 146, 0.15)',
+    backgroundColor: 'rgba(15, 23, 42, 0.5)',
     borderRadius: 16,
     padding: 4,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: 'rgba(15, 43, 146, 0.3)',
+    borderColor: 'rgba(255, 255, 255, 0.05)',
   },
   tabButton: {
     flex: 1,
@@ -233,11 +233,11 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   formCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: '#020617',
     borderRadius: 24,
     padding: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: 'rgba(255, 255, 255, 0.05)',
   },
   inputGroup: {
     marginBottom: 16,
@@ -249,9 +249,9 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   input: {
-    backgroundColor: '#000826',
+    backgroundColor: '#090e1a',
     borderWidth: 1,
-    borderColor: 'rgba(15, 43, 146, 0.4)',
+    borderColor: 'rgba(15, 43, 146, 0.3)',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,

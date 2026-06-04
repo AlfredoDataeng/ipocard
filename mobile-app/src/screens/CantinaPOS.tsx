@@ -156,7 +156,7 @@ export default function CantinaPOS({ route, navigation }: { route: any; navigati
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000c3b', padding: 16, paddingTop: 20 },
+  container: { flex: 1, backgroundColor: '#010206', padding: 16, paddingTop: 20 },
   loadingText: { color: '#94a3b8', textAlign: 'center', marginTop: 12 },
   badge: { backgroundColor: 'rgba(16,185,129,0.1)', borderWidth: 1, borderColor: 'rgba(16,185,129,0.3)', borderRadius: 20, padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   badgeLabel: { color: '#34d399', fontSize: 9, fontWeight: '800', textTransform: 'uppercase' },
@@ -169,16 +169,16 @@ const s = StyleSheet.create({
   menuScroll: { flex: 1 },
   catLabel: { color: '#06b6d4', fontSize: 10, fontWeight: '800', textTransform: 'uppercase', marginBottom: 6, marginTop: 4 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
-  gridItem: { width: '47%', backgroundColor: 'rgba(15,43,146,0.15)', borderWidth: 1, borderColor: 'rgba(15,43,146,0.3)', borderRadius: 14, padding: 12 },
+  gridItem: { width: '47%', backgroundColor: 'rgba(15, 23, 42, 0.5)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', borderRadius: 14, padding: 12 },
   gridItemActive: { borderColor: '#06b6d4', backgroundColor: 'rgba(6,182,212,0.1)' },
   itemName: { color: '#fff', fontSize: 11, fontWeight: '800' },
   itemPrice: { color: '#06b6d4', fontSize: 12, fontWeight: '900', marginTop: 4 },
   itemQty: { color: '#fbbf24', fontSize: 11, fontWeight: '900', marginTop: 2 },
-  cart: { backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', borderRadius: 24, padding: 14, height: 230, marginTop: 10 },
+  cart: { backgroundColor: '#020617', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', borderRadius: 24, padding: 14, height: 230, marginTop: 10 },
   cartTitle: { color: '#fff', fontSize: 12, fontWeight: '800', marginBottom: 8 },
   emptyCart: { color: '#64748b', fontSize: 11, textAlign: 'center', marginTop: 30 },
   cartScroll: { flex: 1 },
-  cartRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#000826', borderRadius: 10, padding: 8, marginBottom: 5, borderWidth: 1, borderColor: 'rgba(15,43,146,0.1)' },
+  cartRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#090e1a', borderRadius: 10, padding: 8, marginBottom: 5, borderWidth: 1, borderColor: 'rgba(15,43,146,0.1)' },
   cartName: { color: '#fff', fontSize: 11, fontWeight: '700', flex: 1 },
   cartRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   cartQty: { color: '#94a3b8', fontSize: 10 },

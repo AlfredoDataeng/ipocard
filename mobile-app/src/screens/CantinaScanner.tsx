@@ -118,7 +118,7 @@ export default function CantinaScanner({ navigation }: { navigation: any }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000c3b',
+    backgroundColor: '#010206',
     padding: 24,
     justifyContent: 'center',
   },
@@ -169,11 +169,11 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   manualCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: '#020617',
     borderRadius: 20,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: 'rgba(255,255,255,0.05)',
   },
   manualTitle: {
     color: '#fff',
@@ -185,9 +185,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   input: {
-    backgroundColor: '#000826',
+    backgroundColor: '#090e1a',
     borderWidth: 1,
-    borderColor: 'rgba(15, 43, 146, 0.4)',
+    borderColor: 'rgba(15, 43, 146, 0.3)',
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
