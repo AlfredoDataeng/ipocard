@@ -9,19 +9,33 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 function getApiBaseUrl(): string {
-  // Se estiver a correr na Web (browser), liga ao localhost
+  const fromEnv = Constants.expoConfig?.extra?.apiBaseUrl as string | undefined;
+  if (fromEnv?.trim()) {
+    return fromEnv.trim().replace(/\/$/, '');
+  }
+
   if (Platform.OS === 'web') {
     return 'http://127.0.0.1:3000';
   }
 
-  // Try to get the debugger host from Expo (works in Expo Go)
-  const debuggerHost = Constants.expoConfig?.hostUri ?? Constants.manifest?.debuggerHost;
-  if (debuggerHost) {
-    const ip = debuggerHost.split(':')[0];
-    return `http://${ip}:3000`;
+  const hostUri =
+    Constants.expoConfig?.hostUri ??
+    (Constants.manifest2?.extra?.expoGo?.debuggerHost as string | undefined) ??
+    Constants.manifest?.debuggerHost;
+
+  if (hostUri) {
+    const host = hostUri.replace(/^https?:\/\//, '').split(':')[0];
+    if (host && host !== 'localhost' && host !== '127.0.0.1') {
+      return `http://${host}:3000`;
+    }
   }
-  
-  // Fallback para mobile (TEM DE SER O TEU IP REAL DO WI-FI, 0.0.0.0 não funciona num telemóvel)
+
+  if (__DEV__) {
+    console.warn(
+      '[IPOCARD] Não foi possível detetar o IP do servidor. Defina EXPO_PUBLIC_API_URL=http://SEU_IP:3000 antes de npx expo start'
+    );
+  }
+
   return 'http://192.168.1.8:3000';
 }
 

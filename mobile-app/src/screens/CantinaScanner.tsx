@@ -7,20 +7,21 @@ import {
   TextInput, 
   Alert 
 } from 'react-native';
-import { Camera } from 'expo-camera';
+// MODIFICADO: Importação do CameraView e do hook de permissões para o SDK 54
+import { CameraView, useCameraPermissions } from 'expo-camera';
 
 export default function CantinaScanner({ navigation }: { navigation: any }) {
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  // MODIFICADO: Gerenciamento moderno de permissões do Expo 54
+  const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [manualCode, setManualCode] = useState('');
 
+  // Efeito para solicitar permissão automaticamente ao abrir a tela
   useEffect(() => {
-    const getCameraPermissions = async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === 'granted');
-    };
-    getCameraPermissions();
-  }, []);
+    if (!permission?.granted) {
+      requestPermission();
+    }
+  }, [permission]);
 
   const handleBarCodeScanned = ({ type, data }: { type: string; data: string }) => {
     setScanned(true);
@@ -38,7 +39,8 @@ export default function CantinaScanner({ navigation }: { navigation: any }) {
     navigation.navigate('CantinaPOS', { studentNumber: manualCode.toUpperCase() });
   };
 
-  if (hasPermission === null) {
+  // MODIFICADO: Verificação do estado de carregamento da permissão
+  if (!permission) {
     return (
       <View style={styles.container}>
         <Text style={styles.text}>A solicitar acesso à câmara...</Text>
@@ -46,11 +48,17 @@ export default function CantinaScanner({ navigation }: { navigation: any }) {
     );
   }
   
-  if (hasPermission === false) {
+  // MODIFICADO: Se o acesso foi negado
+  if (!permission.granted) {
     return (
       <View style={styles.container}>
         <Text style={styles.errorText}>Acesso à câmara negado. Por favor, ative as permissões nas definições.</Text>
         
+        {/* Botão para forçar a solicitação novamente caso queira */}
+        <TouchableOpacity style={[styles.button, { marginBottom: 24 }]} onPress={requestPermission}>
+          <Text style={styles.buttonText}>Tentar Novamente</Text>
+        </TouchableOpacity>
+
         {/* Manual Fallback */}
         <View style={styles.manualCard}>
           <Text style={styles.manualTitle}>Introduzir Nº Conta Manualmente</Text>
@@ -77,10 +85,13 @@ export default function CantinaScanner({ navigation }: { navigation: any }) {
 
       {/* Camera Barcode Scanner Simulator/View */}
       <View style={styles.cameraContainer}>
-        {/* If running on actual device/expo, Camera is loaded */}
-        <Camera
-          onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+        {/* MODIFICADO: Componente atualizado para CameraView com as novas propriedades de leitura */}
+        <CameraView
           style={StyleSheet.absoluteFillObject}
+          barcodeSettings={{
+            barcodeTypes: ['qr'],
+          }}
+          onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
         />
         
         {/* Visual Scanner Overlay Reticle */}

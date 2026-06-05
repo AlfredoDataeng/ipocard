@@ -250,4 +250,24 @@ async function secretariaRoutes(fastify) {
             return reply.code(500).send({ error: 'Erro ao remover estudante: ' + error.message });
         }
     });
+    // Change student password (for mobile login credentials)
+    fastify.put('/students/:id/password', async (request, reply) => {
+        const { id } = request.params;
+        const { newPassword } = request.body;
+        if (!newPassword || newPassword.length < 4) {
+            return reply.code(400).send({ error: 'A nova senha deve ter pelo menos 4 caracteres.' });
+        }
+        const student = await fastify.prisma.student.findUnique({
+            where: { id }
+        });
+        if (!student) {
+            return reply.code(404).send({ error: 'Estudante não encontrado.' });
+        }
+        const passwordHash = await bcryptjs_1.default.hash(newPassword, 10);
+        await fastify.prisma.student.update({
+            where: { id },
+            data: { password: passwordHash }
+        });
+        return { message: 'Senha alterada com sucesso!' };
+    });
 }
