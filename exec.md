@@ -52,14 +52,19 @@ A app mobile é para os estudantes usarem e para o operador da cantina (POS).
    ```bash
    npm install --legacy-peer-deps
    ```
-4. Inicia o servidor Expo em modo rede local:
+4. Inicia o servidor Expo (já usa `--lan` por defeito):
    ```bash
-   npx expo start --lan
+   npm start
+   ```
+   Se o IP no ecrã de login estiver errado, define o IP do PC antes de arrancar:
+   ```bash
+   EXPO_PUBLIC_API_URL=http://SEU_IP_WIFI:3000 npm start
    ```
 
 ### 📱 Como Acessar a App no Telemóvel:
 - Certifica-te de que o teu telemóvel está ligado ao **mesmo Wi-Fi** que o teu computador.
-- Instala a aplicação **Expo Go** na Google Play Store (Android) ou App Store (iOS).
+- **Android:** usa o QR do terminal; se a Play Store tiver Expo Go mais novo que o SDK 50, o CLI pode instalar a versão compatível ao abrir o projeto.
+- **iPhone físico:** o Expo Go da App Store pode não suportar SDK 50 — atualiza o SDK do projeto ou usa development build.
 - Na app Expo Go, seleciona "Scan QR Code".
 - Aponta a câmara para o **QR Code que apareceu no teu terminal**.
 
